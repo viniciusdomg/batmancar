@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../car_view_model.dart';
 
 class TelaControleManual extends StatefulWidget {
+  const TelaControleManual({super.key});
+
   @override
   _TelaControleManualState createState() => _TelaControleManualState();
 }
 
 class _TelaControleManualState extends State<TelaControleManual> {
-  double joystickX = 0.00;
-  double joystickY = 0.00;
+  int joystickX = 0;
+  int joystickY = 0;
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<CarViewModel>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
@@ -35,7 +41,7 @@ class _TelaControleManualState extends State<TelaControleManual> {
           // Área central com controle direcional
           Expanded(
             child: Center(
-              child: _buildDirectionalControl(),
+              child: _buildDirectionalControl(vm),
             ),
           ),
           // Indicadores de Joystick na parte inferior
@@ -65,7 +71,7 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Widget do controle direcional 3x3
-  Widget _buildDirectionalControl() {
+  Widget _buildDirectionalControl(CarViewModel vm) {
     return SizedBox(
       width: 280,
       height: 280,
@@ -77,7 +83,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 93.33,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_up,
-              () => _onDirectionPressed('UP'),
+              () => _onDirectionPressed('UP', vm),
+              vm
             ),
           ),
           // Botão ESQUERDA (posição left center)
@@ -86,7 +93,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 0,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_left,
-              () => _onDirectionPressed('LEFT'),
+              () => _onDirectionPressed('LEFT', vm),
+              vm
             ),
           ),
           // Botão DIREITA (posição right center)
@@ -95,7 +103,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             right: 0,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_right,
-              () => _onDirectionPressed('RIGHT'),
+              () => _onDirectionPressed('RIGHT', vm),
+              vm
             ),
           ),
           // Botão BAIXO (posição bottom center)
@@ -104,7 +113,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 93.33,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_down,
-              () => _onDirectionPressed('DOWN'),
+              () => _onDirectionPressed('DOWN', vm),
+              vm
             ),
           ),
           // Círculo central com ícone de navegação
@@ -115,14 +125,14 @@ class _TelaControleManualState extends State<TelaControleManual> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF2547F4).withOpacity(0.3),
+                  color: const Color(0xFF2547F4).withValues(alpha: 0.3),
                   width: 2,
                   style: BorderStyle.solid,
                 ),
               ),
               child: Icon(
                 Icons.navigation,
-                color: const Color(0xFF2547F4).withOpacity(0.5),
+                color: const Color(0xFF2547F4).withValues(alpha: 0.5),
                 size: 48,
               ),
             ),
@@ -133,20 +143,20 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Botão direcional individual
-  Widget _buildDirectionButton(IconData icon, VoidCallback onPressed) {
+  Widget _buildDirectionButton(IconData icon, VoidCallback onPressed, CarViewModel vm) {
     return GestureDetector(
       onTapDown: (_) => onPressed(),
-      onTapUp: (_) => _onDirectionReleased(),
+      onTapUp: (_) => _onDirectionReleased(vm),
       child: Container(
         width: 93.33,
         height: 93.33,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF2547F4).withOpacity(0.5),
+            color: const Color(0xFF2547F4).withValues(alpha: 0.5),
             width: 2,
           ),
-          color: const Color(0xFF2547F4).withOpacity(0.2),
+          color: const Color(0xFF2547F4).withValues(alpha: 0.2),
         ),
         child: Icon(
           icon,
@@ -158,14 +168,14 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Card de indicador de Joystick
-  Widget _buildJoystickIndicator(String label, double value) {
+  Widget _buildJoystickIndicator(String label, int value) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -175,14 +185,14 @@ class _TelaControleManualState extends State<TelaControleManual> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            value.toStringAsFixed(2),
+            value.toString(),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -196,32 +206,40 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Callback quando botão direcional é pressionado
-  void _onDirectionPressed(String direction) {
+  void _onDirectionPressed(String direction, CarViewModel vm) {
+    int x = 0;
+    int y = 0;
+
+    switch (direction) {
+      case 'UP':
+        y = 1;
+        break;
+      case 'DOWN':
+        y = -1;
+        break;
+      case 'LEFT':
+        x = -1;
+        break;
+      case 'RIGHT':
+        x = 1;
+        break;
+    }
+
     setState(() {
-      switch (direction) {
-        case 'UP':
-          joystickY = 1.00;
-          break;
-        case 'DOWN':
-          joystickY = -1.00;
-          break;
-        case 'LEFT':
-          joystickX = -1.00;
-          break;
-        case 'RIGHT':
-          joystickX = 1.00;
-          break;
-      }
+      joystickX = x;
+      joystickY = y;
     });
-    // Aqui você pode adicionar lógica para enviar comandos ao Arduino/ESP
-    print('Direção: $direction | X: $joystickX | Y: $joystickY');
+
+    vm.updateJoystick(x, y);
   }
 
   // Callback quando botão direcional é solto
-  void _onDirectionReleased() {
+  void _onDirectionReleased(CarViewModel vm) {
     setState(() {
-      joystickX = 0.00;
-      joystickY = 0.00;
+      joystickX = 0;
+      joystickY = 0;
     });
+
+    vm.updateJoystick(0, 0);
   }
 }

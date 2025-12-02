@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class TelaFuncoesEspeciais extends StatefulWidget {
+  const TelaFuncoesEspeciais({super.key});
+
   @override
   _TelaFuncoesEspeciaisState createState() => _TelaFuncoesEspeciaisState();
 }
 
 class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   bool luzAtivada = false;
-  bool turboAtivado = true; // Iniciado como ligado (checked no HTML)
+  bool turboAtivado = true;
   bool stealthAtivado = false;
 
   @override
@@ -162,7 +164,7 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
