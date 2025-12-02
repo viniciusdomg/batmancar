@@ -17,7 +17,6 @@ class CarViewModel extends ChangeNotifier {
     destinoY: 0,
   );
 
-
   Commands get command => _command;
 
   void updateJoystick(int x, int y) {

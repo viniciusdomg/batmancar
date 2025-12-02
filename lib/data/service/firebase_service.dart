@@ -16,7 +16,7 @@ class FirebaseService {
 
   Future<void> setVal( dynamic value) async {
     try {
-      await _rootRef.set(ServerValue.increment(1));
+      await _rootRef.set(value);
       print("Salvou valor");
     } catch (e) {
       print('Erro no Service ao setar valor: $e');
