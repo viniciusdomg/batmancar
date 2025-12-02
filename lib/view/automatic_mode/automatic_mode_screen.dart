@@ -31,22 +31,6 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     });
   }
 
-  void _sendDestination() {
-    if (endPoint == null) return;
-
-    final destinoX = endPoint!.dx.toInt();
-    final destinoY = endPoint!.dy.toInt();
-
-    print('Enviando destino: X=$destinoX, Y=$destinoY');
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Destino enviado: ($destinoX, $destinoY)'),
-        backgroundColor: const Color(0xFF2547F4),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final mapWidth = (maxX + 1) * cellSize;
@@ -55,95 +39,197 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("Modo Automático"),
+        backgroundColor: const Color(0xFF101322),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'Modo Automático',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: reset,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
           )
         ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: Center(
-              child: GestureDetector(
-                onTapDown: (details) {
-                  onTapDown(
-                    details,
-                    Size(mapWidth, mapHeight),
-                  );
-                },
-                child: CustomPaint(
-                  size: Size(mapWidth, mapHeight),
-                  painter: GridPainter(endPoint: endPoint),
-                ),
-              ),
-            ),
-          ),
-
-          /// BOTÃO ENVIAR
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2547F4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: _sendDestination,
-                child: const Text(
-                  "Enviar Destino",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          /// RODAPÉ / COORDENADAS
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.black,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Pontos Marcados",
-                  style: TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("Início"),
-                    Text("(0, 0)"),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Fim"),
-                    Text(
-                      endPoint == null
-                          ? "(-, -)"
-                          : "(${endPoint!.dx.toInt()}, ${endPoint!.dy.toInt()})",
+            child: Padding(
+              padding: const EdgeInsets.all(16).copyWith(top: 24),
+              child: Column(
+                children: [
+                  /// MAPA
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1D2D),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF2547F4).withOpacity(0.4),
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-              ],
+                    padding: const EdgeInsets.all(12),
+                    child: Center(
+                      child: GestureDetector(
+                        onTapDown: (details) {
+                          onTapDown(
+                            details,
+                            Size(mapWidth, mapHeight),
+                          );
+                        },
+                        child: CustomPaint(
+                          size: Size(mapWidth, mapHeight),
+                          painter: GridPainter(endPoint: endPoint),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// COORDENADAS
+                  Row(
+                    children: [
+                      _buildCoordinateBox(
+                        title: "Início",
+                        value: "(0 , 0)",
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCoordinateBox(
+                        title: "Fim",
+                        value: endPoint == null
+                            ? "(- , -)"
+                            : "(${endPoint!.dx.toInt()} , ${endPoint!.dy.toInt()})",
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// BOTÃO
+                  _buildSendButton(),
+                ],
+              ),
             ),
-          )
+          ),
+
+          /// STATUS
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Text(
+              'Conectado',
+              style: TextStyle(
+                color: const Color(0xFF9CA1BA),
+                fontSize: 14,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCoordinateBox({required String title, required String value}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1D2D),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.08),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSendButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFF2547F4),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2547F4).withOpacity(0.5),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _sendDestination,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: const Text(
+          'Iniciar Condução',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.15,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _sendDestination() {
+    if (endPoint == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Defina um ponto no mapa primeiro'),
+          backgroundColor: Color(0xFF2547F4),
+        ),
+      );
+      return;
+    }
+
+    final x = endPoint!.dx.toInt();
+    final y = endPoint!.dy.toInt();
+
+    print('Enviando destino: X=$x, Y=$y');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Destino enviado: ($x, $y)'),
+        backgroundColor: const Color(0xFF2547F4),
       ),
     );
   }
@@ -158,13 +244,12 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paintGrid = Paint()
-      ..color = Colors.grey.shade800
+      ..color = Colors.white.withOpacity(0.15)
       ..strokeWidth = 1;
 
     final rows = (size.height / cellSize).floor();
     final cols = (size.width / cellSize).floor();
 
-    /// LINHAS HORIZONTAIS
     for (int i = 0; i <= rows; i++) {
       canvas.drawLine(
         Offset(0, i * cellSize),
@@ -173,7 +258,6 @@ class GridPainter extends CustomPainter {
       );
     }
 
-    /// LINHAS VERTICAIS
     for (int i = 0; i <= cols; i++) {
       canvas.drawLine(
         Offset(i * cellSize, 0),
@@ -182,7 +266,6 @@ class GridPainter extends CustomPainter {
       );
     }
 
-    /// PONTO INICIAL
     final startPaint = Paint()..color = Colors.red;
     canvas.drawCircle(
       Offset(cellSize / 2, size.height - cellSize / 2),
@@ -190,9 +273,8 @@ class GridPainter extends CustomPainter {
       startPaint,
     );
 
-    /// PONTO FINAL
     if (endPoint != null) {
-      final endPaint = Paint()..color = Colors.blue;
+      final endPaint = Paint()..color = const Color(0xFF2547F4);
       final dx = endPoint!.dx * cellSize + (cellSize / 2);
       final dy = size.height - (endPoint!.dy * cellSize + (cellSize / 2));
 
