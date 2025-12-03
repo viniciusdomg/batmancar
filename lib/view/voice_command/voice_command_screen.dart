@@ -49,7 +49,7 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
           Expanded(
             flex: 1,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center, // antes era end
               children: [
                 const Text(
                   'Fale um comando...',
@@ -74,23 +74,27 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
               ],
             ),
           ),
-          // Microfone
+
+          // Microfone (um pouco mais pra cima)
           Expanded(
-            flex: 1,
-            child: Center(
+            flex: 2, // dá mais espaço pra esse bloco
+            child: Align(
+              alignment: const Alignment(0, -0.8), // sobe o botão
               child: _buildMicrophoneButton(),
             ),
           ),
-          // Sugestões (com scroll opcional)
+
+          // Sugestões (mais perto do centro)
           Expanded(
             flex: 1,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Sugestões de Comandos',
@@ -101,7 +105,7 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
                       letterSpacing: 0.15,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   _buildCommandChips(),
                 ],
               ),
@@ -164,8 +168,8 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
     final commands = [
       'Ligar luz',
       'Desligar luz',
-      'Ativar stealth',
-      'Desativar stealth',
+      'Ativar modo furtivo',
+      'Desativar modo furtivo',
       'Modo turbo',
       'Desativar turbo',
       'Frente',
@@ -236,8 +240,8 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
               _processVoiceCommand(_lastWords, vm);
             }
           },
-          listenFor: const Duration(seconds: 5),
-          pauseFor: const Duration(seconds: 2),
+          listenFor: const Duration(seconds: 8),
+          pauseFor: const Duration(seconds: 4),
           localeId: 'pt_BR',
         );
       }
@@ -265,7 +269,7 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
     if (normalized.contains('desligar luz')) {
       print('-> toggleLuz(false)');
       vm.toggleLuz(false);
-    } else if (normalized.contains('desativar stealth')) {
+    } else if (normalized.contains('desativar modo furtivo')) {
       print('-> toggleStealth(false)');
       vm.toggleStealth(false);
     } else if (normalized.contains('desativar turbo')) {
@@ -276,7 +280,7 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
     } else if (normalized.contains('ligar luz')) {
       print('-> toggleLuz(true)');
       vm.toggleLuz(true);
-    } else if (normalized.contains('ativar stealth')) {
+    } else if (normalized.contains('ativar modo furtivo')) {
       print('-> toggleStealth(true)');
       vm.toggleStealth(true);
     } else if (normalized.contains('modo turbo') ||

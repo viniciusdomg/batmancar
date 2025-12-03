@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/service/firebase_service.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class TelaFuncoesEspeciais extends StatefulWidget {
   const TelaFuncoesEspeciais({super.key});
@@ -10,10 +11,46 @@ class TelaFuncoesEspeciais extends StatefulWidget {
 
 class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   final _firebaseService = FirebaseService.instance;
+  late final DatabaseReference _rootRef;
 
   bool luzesAtivadas = false;
   bool turboAtivado = false;
   bool stealthAtivado = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _rootRef = FirebaseDatabase.instance.ref();
+    _carregarEstadoInicial();
+    _ouvirMudancas(); // opcional, mas útil se outros lugares mudarem o estado
+  }
+
+  Future<void> _carregarEstadoInicial() async {
+    final snapshot = await _rootRef.get();
+    final data = snapshot.value as Map<dynamic, dynamic>?;
+
+    if (data == null) return;
+
+    setState(() {
+      luzesAtivadas = (data['luz'] ?? false) as bool;
+      turboAtivado = (data['turbo'] ?? false) as bool;
+      stealthAtivado = (data['stealth'] ?? false) as bool;
+    });
+  }
+
+  void _ouvirMudancas() {
+    _rootRef.onValue.listen((event) {
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+
+      if (data == null) return;
+
+      setState(() {
+        luzesAtivadas = (data['luz'] ?? false) as bool;
+        turboAtivado = (data['turbo'] ?? false) as bool;
+        stealthAtivado = (data['stealth'] ?? false) as bool;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +102,7 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
                   const SizedBox(height: 16),
                   _buildFunctionItem(
                     icon: Icons.visibility_off,
-                    label: 'Stealth',
+                    label: 'Modo furtivo',
                     value: stealthAtivado,
                     onChanged: (value) {
                       setState(() => stealthAtivado = value);
