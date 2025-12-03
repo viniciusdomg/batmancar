@@ -40,7 +40,10 @@ class CarViewModel extends ChangeNotifier {
 
   void toggleStealth(bool value) {
     _command = _command.copyWith(stealth: value);
-    _syncWithFirebase();
+
+    // agora funcionando corretamente
+    _service.updateState("car_state/modes/stealth", value);
+
     notifyListeners();
   }
 
@@ -64,15 +67,15 @@ class CarViewModel extends ChangeNotifier {
   // --- COMUNICAÇÃO COM FIREBASE ---
   void _syncWithFirebase() {
     try {
-      print('salvando no firebase: ${_command.toJson()}');
-      _service.setVal(_command.toJson());
-      print("Sucesso! Dados enviados.");
+      final data = _command.toJson();
+      if (kDebugMode) {
+        print('CarViewModel: atualizando car_state -> $data');
+      }
+      _service.updateCarState(data);
     } catch (e) {
       if (kDebugMode) {
         print("Erro ao enviar para Firebase: $e");
       }
-    } finally {
-      notifyListeners();
     }
   }
 }
