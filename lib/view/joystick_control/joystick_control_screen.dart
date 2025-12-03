@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../car_view_model.dart';
+import 'package:batmancar/viewmodel/car_view_model.dart';
 
 class TelaControleManual extends StatefulWidget {
   const TelaControleManual({super.key});

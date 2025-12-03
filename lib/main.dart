@@ -1,4 +1,4 @@
-import 'package:batmancar/view/car_view_model.dart';
+import 'package:batmancar/viewmodel/car_view_model.dart';
 import 'package:batmancar/view/navigation/navigation_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

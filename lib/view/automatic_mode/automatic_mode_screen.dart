@@ -1,41 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:batmancar/viewmodel/car_view_model.dart';
 
 class TelaDirecaoAutomatica extends StatefulWidget {
   @override
   _TelaDirecaoAutomaticaState createState() => _TelaDirecaoAutomaticaState();
 }
 
-class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
-    with SingleTickerProviderStateMixin {
-  double destinoX = 152.4;
-  double destinoY = 88.9;
-  Offset? markerPosition;
-  late AnimationController _pulseController;
+class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
+  static const double cellSize = 20;
+  static const int maxX = 10;
+  static const int maxY = 24;
 
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-    
-    // Posição inicial do marcador (45% do topo, 60% da esquerda)
-    markerPosition = const Offset(0.6, 0.45);
+  Offset? endPoint;
+
+  void reset() {
+    setState(() {
+      endPoint = null;
+    });
   }
 
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
+  void onTapDown(TapDownDetails details, Size size) {
+    final local = details.localPosition;
+
+    final x = (local.dx / cellSize).floor();
+    final y = ((size.height - local.dy) / cellSize).floor();
+
+    if (x < 0 || x > maxX || y < 0 || y > maxY) return;
+
+    setState(() {
+      endPoint = Offset(x.toDouble(), y.toDouble());
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final mapWidth = (maxX + 1) * cellSize;
+    final mapHeight = (maxY + 1) * cellSize;
+
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF101322),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
@@ -48,28 +54,84 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            letterSpacing: -0.15,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: reset,
+            icon: const Icon(Icons.refresh, color: Colors.white),
+          )
+        ],
       ),
       body: Column(
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16).copyWith(top: 24),
               child: Column(
                 children: [
-                  // Mapa interativo
-                  Expanded(
-                    child: _buildInteractiveMap(),
+                  // MAPA
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1D2D),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF2547F4).withOpacity(0.4),
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Center(
+                      child: GestureDetector(
+                        onTapDown: (details) {
+                          onTapDown(
+                            details,
+                            Size(mapWidth, mapHeight),
+                          );
+                        },
+                        child: CustomPaint(
+                          size: Size(mapWidth, mapHeight),
+                          painter: GridPainter(endPoint: endPoint),
+                        ),
+                      ),
+                    ),
                   ),
+
                   const SizedBox(height: 24),
-                  // Coordenadas do destino
-                  _buildCoordinatesDisplay(),
+
+                  // COORDENADAS
+                  Row(
+                    children: [
+                      _buildCoordinateBox(
+                        title: "Início",
+                        value: "(0 , 0)",
+                      ),
+                      const SizedBox(width: 12),
+                      _buildCoordinateBox(
+                        title: "Fim",
+                        value: endPoint == null
+                            ? "(- , -)"
+                            : "(${endPoint!.dx.toInt()} , ${endPoint!.dy.toInt()})",
+                      ),
+                    ],
+                  ),
+
                   const SizedBox(height: 24),
-                  // Botão enviar destino
-                  _buildSendDestinationButton(),
+
+                  // BOTÃO
+                  _buildSendButton(context),
                 ],
+              ),
+            ),
+          ),
+
+          // STATUS
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Text(
+              'Conectado',
+              style: TextStyle(
+                color: const Color(0xFF9CA1BA),
+                fontSize: 14,
               ),
             ),
           ),
@@ -78,75 +140,34 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
     );
   }
 
-  // Mapa interativo com marcador animado
-  Widget _buildInteractiveMap() {
-    return GestureDetector(
-      onTapDown: (details) {
-        setState(() {
-          // Captura posição relativa do toque
-          final RenderBox box = context.findRenderObject() as RenderBox;
-          final localPosition = details.localPosition;
-          
-          // Calcula posição relativa (0.0 a 1.0)
-          markerPosition = Offset(
-            localPosition.dx / box.size.width,
-            localPosition.dy / box.size.height,
-          );
-          
-          // Atualiza coordenadas
-          destinoX = (markerPosition!.dx * 300).roundToDouble();
-          destinoY = (markerPosition!.dy * 200).roundToDouble();
-        });
-      },
+  Widget _buildCoordinateBox({required String title, required String value}) {
+    return Expanded(
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
+          color: const Color(0xFF1A1D2D),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF2547F4).withOpacity(0.3),
-            width: 1,
-          ),
-          image: const DecorationImage(
-            image: NetworkImage(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBdtksBcnKVclASRBDJEmqTTb4a3_SkynzzT5Q43UG1TY0cwfK1h0NqYZBwbdWgO5yHzDkfXI7HH4cxR4P-qJ4ig717kijZx246hcTazAaSAKIEqcMQDBjK8NqKfKpe6Lj2EZSlyUJoyvzii9m3k820vuWGI2B6eiWGVXnl-WHWSGO8GOf2KvPLLy6QMnFAoJ0NNQ2k5MWh3o5SgVza7YrosY7hrs-vD0v8k2FuHP0YGFprbH5SytHfEXcNUH7Qi7P5iWNGcFd2psE',
-            ),
-            fit: BoxFit.cover,
+            color: Colors.white.withOpacity(0.08),
           ),
         ),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gradiente overlay
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.transparent,
-                    const Color(0xFF101322).withOpacity(0.8),
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ),
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 14,
               ),
             ),
-            // Marcador animado
-            if (markerPosition != null)
-              Positioned(
-                left: markerPosition!.dx * MediaQuery.of(context).size.width - 20,
-                top: markerPosition!.dy * 300 - 20,
-                child: _buildAnimatedMarker(),
-              ),
-            // Texto de instrução
-            Positioned(
-              bottom: 16,
-              left: 16,
-              child: Text(
-                'Toque no mapa para definir um destino',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 14,
-                ),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -155,121 +176,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
     );
   }
 
-  // Marcador com animação de pulso
-  Widget _buildAnimatedMarker() {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Anel de pulso externo
-            Transform.scale(
-              scale: 1 + (_pulseController.value * 0.5),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF2547F4).withOpacity(
-                      0.5 * (1 - _pulseController.value),
-                    ),
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-            // Ícone de localização
-            const Icon(
-              Icons.location_searching,
-              color: Color(0xFF2547F4),
-              size: 36,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Display de coordenadas
-  Widget _buildCoordinatesDisplay() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Destino X',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  destinoX.toStringAsFixed(1),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Destino Y',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  destinoY.toStringAsFixed(1),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Botão de enviar destino
-  Widget _buildSendDestinationButton() {
+  Widget _buildSendButton(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 56,
@@ -280,12 +187,11 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
           BoxShadow(
             color: const Color(0xFF2547F4).withOpacity(0.5),
             blurRadius: 20,
-            spreadRadius: 0,
           ),
         ],
       ),
       child: ElevatedButton(
-        onPressed: _sendDestination,
+        onPressed: () => _sendDestination(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -294,7 +200,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
           ),
         ),
         child: const Text(
-          'Enviar Destino',
+          'Iniciar Condução',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -306,16 +212,81 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica>
     );
   }
 
-  // Enviar destino ao Arduino
-  void _sendDestination() {
-    print('Enviando destino: X=$destinoX, Y=$destinoY');
-    // Aqui você adicionaria a lógica para enviar coordenadas via Bluetooth
-    
+  Future<void> _sendDestination(BuildContext context) async {
+    if (endPoint == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Defina um ponto no mapa primeiro'),
+          backgroundColor: Color(0xFF2547F4),
+        ),
+      );
+      return;
+    }
+
+    final double x = endPoint!.dx;
+    final double y = endPoint!.dy;
+
+    print('Enviando coordenadas: X=$x, Y=$y');
+
+    final carViewModel = context.read<CarViewModel>();
+    await carViewModel.setDestino(x, y);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Destino enviado: ($destinoX, $destinoY)'),
+        content: Text('Destino enviado: ($x, $y)'),
         backgroundColor: const Color(0xFF2547F4),
       ),
     );
   }
+}
+
+class GridPainter extends CustomPainter {
+  static const double cellSize = 20;
+  final Offset? endPoint;
+
+  GridPainter({this.endPoint});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paintGrid = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..strokeWidth = 1;
+
+    final rows = (size.height / cellSize).floor();
+    final cols = (size.width / cellSize).floor();
+
+    for (int i = 0; i <= rows; i++) {
+      canvas.drawLine(
+        Offset(0, i * cellSize),
+        Offset(size.width, i * cellSize),
+        paintGrid,
+      );
+    }
+
+    for (int i = 0; i <= cols; i++) {
+      canvas.drawLine(
+        Offset(i * cellSize, 0),
+        Offset(i * cellSize, size.height),
+        paintGrid,
+      );
+    }
+
+    final startPaint = Paint()..color = Colors.red;
+    canvas.drawCircle(
+      Offset(cellSize / 2, size.height - cellSize / 2),
+      6,
+      startPaint,
+    );
+
+    if (endPoint != null) {
+      final endPaint = Paint()..color = const Color(0xFF2547F4);
+      final dx = endPoint!.dx * cellSize + (cellSize / 2);
+      final dy = size.height - (endPoint!.dy * cellSize + (cellSize / 2));
+
+      canvas.drawCircle(Offset(dx, dy), 6, endPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

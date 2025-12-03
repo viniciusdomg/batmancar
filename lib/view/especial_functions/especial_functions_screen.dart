@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/service/firebase_service.dart';
 
 class TelaFuncoesEspeciais extends StatefulWidget {
   const TelaFuncoesEspeciais({super.key});
@@ -8,8 +9,10 @@ class TelaFuncoesEspeciais extends StatefulWidget {
 }
 
 class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
-  bool luzAtivada = false;
-  bool turboAtivado = true;
+  final _firebaseService = FirebaseService.instance;
+
+  bool luzesAtivadas = false;
+  bool turboAtivado = false;
   bool stealthAtivado = false;
 
   @override
@@ -42,11 +45,11 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
                 children: [
                   _buildFunctionItem(
                     icon: Icons.lightbulb,
-                    label: 'Luz',
-                    value: luzAtivada,
+                    label: 'Luzes',
+                    value: luzesAtivadas,
                     onChanged: (value) {
-                      setState(() => luzAtivada = value);
-                      _onFunctionToggle('Luz', value);
+                      setState(() => luzesAtivadas = value);
+                      _onFunctionToggle('Luzes', value);
                     },
                   ),
                   const SizedBox(height: 16),
@@ -73,7 +76,6 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
               ),
             ),
           ),
-          // Footer com status de conexão
           Padding(
             padding: const EdgeInsets.only(bottom: 32),
             child: Text(
@@ -89,7 +91,6 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
     );
   }
 
-  // Widget de item de função com switch
   Widget _buildFunctionItem({
     required IconData icon,
     required String label,
@@ -104,7 +105,6 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // Ícone à esquerda
           Container(
             width: 48,
             height: 48,
@@ -119,7 +119,6 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
             ),
           ),
           const SizedBox(width: 16),
-          // Label
           Expanded(
             child: Text(
               label,
@@ -130,14 +129,12 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
               ),
             ),
           ),
-          // Switch customizado
           _buildCustomSwitch(value: value, onChanged: onChanged),
         ],
       ),
     );
   }
 
-  // Switch customizado para corresponder ao design
   Widget _buildCustomSwitch({
     required bool value,
     required ValueChanged<bool> onChanged,
@@ -176,9 +173,23 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
     );
   }
 
-  // Callback quando função é ativada/desativada
-  void _onFunctionToggle(String function, bool enabled) {
+  void _onFunctionToggle(String function, bool enabled) async {
     print('$function: ${enabled ? "Ativado" : "Desativado"}');
-    // Aqui você pode adicionar lógica para enviar comandos ao Arduino/ESP
+
+    try {
+      switch (function) {
+        case 'Luzes':
+          await _firebaseService.atualizarLuzes(enabled);
+          break;
+        case 'Turbo':
+          await _firebaseService.atualizarTurbo(enabled);
+          break;
+        case 'Stealth':
+          await _firebaseService.atualizarStealth(enabled);
+          break;
+      }
+    } catch (e) {
+      debugPrint('Erro ao atualizar $function: $e');
+    }
   }
 }

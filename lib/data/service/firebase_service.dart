@@ -1,38 +1,52 @@
 import 'package:firebase_database/firebase_database.dart';
 
 class FirebaseService {
+  FirebaseService._();
+  static final instance = FirebaseService._();
+
   final FirebaseDatabase _db = FirebaseDatabase.instance;
+  DatabaseReference get _rootRef => _db.ref(); // raiz
 
-  // Getter necessário para usar _rootRef
-  DatabaseReference get _rootRef => _db.ref();
-
-  /// Atualiza um caminho direto no Firebase
-  Future<void> atualizarEstado(String caminho, dynamic valor) async {
-    try {
-      await _rootRef.child(caminho).set(valor);
-      print("Firebase atualizou: $caminho = $valor");
-    } catch (e) {
-      print("Erro ao atualizar Firebase: $e");
-    }
+  Future<void> atualizarLuzes(bool ligado) async {
+    print('FirebaseService.atualizarLuzes: $ligado');
+    await _rootRef.update({'luz': ligado});
   }
 
-  /// Atualiza apenas um nó específico (mesma ideia da função acima)
-  Future<void> updateState(String path, dynamic value) async {
-    try {
-      await _rootRef.child(path).set(value);
-      print("Updated: $path -> $value");
-    } catch (e) {
-      print("Error updating state: $e");
-    }
+  Future<void> atualizarTurbo(bool ativado) async {
+    print('FirebaseService.atualizarTurbo: $ativado');
+    await _rootRef.update({'turbo': ativado});
   }
 
-  /// Atualiza o nó car_state sem sobrescrever os demais campos
-  Future<void> updateCarState(Map<String, dynamic> data) async {
-    try {
-      await _rootRef.child("car_state").update(data);
-      print("car_state atualizado -> $data");
-    } catch (e) {
-      print("Erro ao atualizar car_state: $e");
-    }
+  Future<void> atualizarStealth(bool ativado) async {
+    print('FirebaseService.atualizarStealth: $ativado');
+    await _rootRef.update({'stealth': ativado});
+  }
+
+  Future<void> atualizarJoystick({
+    required int joystickX,
+    required int joystickY,
+  }) async {
+    print('FirebaseService.atualizarJoystick: x=$joystickX, y=$joystickY');
+    await _rootRef.update({
+      'joystick_x': joystickX,
+      'joystick_y': joystickY,
+    });
+  }
+
+  Future<void> atualizarDestino({
+    required int destinoX,
+    required int destinoY,
+  }) async {
+    print('FirebaseService.atualizarDestino: x=$destinoX, y=$destinoY');
+    await _rootRef.update({
+      'modo_automatico': true,
+      'destino_x': destinoX,
+      'destino_y': destinoY,
+    });
+  }
+
+  Future<void> setManualMode() async {
+    print('FirebaseService.setManualMode');
+    await _rootRef.update({'modo_automatico': false});
   }
 }
