@@ -38,29 +38,45 @@ class _TelaControleManualState extends State<TelaControleManual> {
       ),
       body: Column(
         children: [
-          // Área central com controle direcional
+          const SizedBox(height: 50),
+          // Joystick com menos altura e sem Center extra
           Expanded(
-            child: Center(
+            flex: 0,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16),
               child: _buildDirectionalControl(vm),
             ),
           ),
-          // Indicadores de Joystick na parte inferior
+
+          const SizedBox(height: 80),
+
+          // Bloco de cards logo abaixo
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: _buildJoystickIndicator(
-                    'Joystick X',
-                    joystickX,
-                  ),
+                _buildInfoCard(
+                  'Sensor de Obstáculo (cm)',
+                  vm.distancia,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildJoystickIndicator(
-                    'Joystick Y',
-                    joystickY,
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoCard(
+                        'Joystick X',
+                        joystickX,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInfoCard(
+                        'Joystick Y',
+                        joystickY,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -83,8 +99,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 93.33,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_up,
-              () => _onDirectionPressed('UP', vm),
-              vm
+                  () => _onDirectionPressed('UP', vm),
+              vm,
             ),
           ),
           // Botão ESQUERDA (posição left center)
@@ -93,8 +109,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 0,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_left,
-              () => _onDirectionPressed('LEFT', vm),
-              vm
+                  () => _onDirectionPressed('LEFT', vm),
+              vm,
             ),
           ),
           // Botão DIREITA (posição right center)
@@ -103,8 +119,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             right: 0,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_right,
-              () => _onDirectionPressed('RIGHT', vm),
-              vm
+                  () => _onDirectionPressed('RIGHT', vm),
+              vm,
             ),
           ),
           // Botão BAIXO (posição bottom center)
@@ -113,8 +129,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
             left: 93.33,
             child: _buildDirectionButton(
               Icons.keyboard_arrow_down,
-              () => _onDirectionPressed('DOWN', vm),
-              vm
+                  () => _onDirectionPressed('DOWN', vm),
+              vm,
             ),
           ),
           // Círculo central com ícone de navegação
@@ -143,7 +159,11 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Botão direcional individual
-  Widget _buildDirectionButton(IconData icon, VoidCallback onPressed, CarViewModel vm) {
+  Widget _buildDirectionButton(
+      IconData icon,
+      VoidCallback onPressed,
+      CarViewModel vm,
+      ) {
     return GestureDetector(
       onTapDown: (_) => onPressed(),
       onTapUp: (_) => _onDirectionReleased(vm),
@@ -167,8 +187,8 @@ class _TelaControleManualState extends State<TelaControleManual> {
     );
   }
 
-  // Card de indicador de Joystick
-  Widget _buildJoystickIndicator(String label, int value) {
+  // Card genérico (usado para distância e joystick)
+  Widget _buildInfoCard(String label, int value) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(

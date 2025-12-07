@@ -5,8 +5,9 @@ class Commands {
   final bool turbo;
   final bool stealth;
   final bool modoAutomatico;
-  final int destinoX;
-  final int destinoY;
+  final double destinoX;
+  final double destinoY;
+  final int distancia;
 
   Commands({
     required this.joystickX,
@@ -17,6 +18,7 @@ class Commands {
     required this.modoAutomatico,
     required this.destinoX,
     required this.destinoY,
+    required this.distancia,
   });
 
   Map<String, dynamic> toJson() {
@@ -29,6 +31,7 @@ class Commands {
       'modo_automatico': modoAutomatico,
       'destino_x': destinoX,
       'destino_y': destinoY,
+      'distancia': distancia,
     };
   }
 
@@ -43,6 +46,7 @@ class Commands {
       modoAutomatico: map['modo_automatico'] ?? false,
       destinoX: map['destino_x'] ?? 0,
       destinoY: map['destino_y'] ?? 0,
+      distancia: map['distancia'] ?? 0,
     );
   }
 
@@ -54,8 +58,9 @@ class Commands {
     bool? turbo,
     bool? stealth,
     bool? modoAutomatico,
-    int? destinoX,
-    int? destinoY,
+    double? destinoX,
+    double? destinoY,
+    int? distancia,
   }) {
     return Commands(
       joystickX: joystickX ?? this.joystickX,
@@ -66,6 +71,7 @@ class Commands {
       modoAutomatico: modoAutomatico ?? this.modoAutomatico,
       destinoX: destinoX ?? this.destinoX,
       destinoY: destinoY ?? this.destinoY,
+      distancia: distancia ?? this.distancia,
     );
   }
 

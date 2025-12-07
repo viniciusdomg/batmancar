@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../data/service/firebase_service.dart';
 import 'package:firebase_database/firebase_database.dart';
+import '../../data/service/firebase_service.dart';
 
 class TelaFuncoesEspeciais extends StatefulWidget {
   const TelaFuncoesEspeciais({super.key});
@@ -17,19 +19,27 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   bool turboAtivado = false;
   bool stealthAtivado = false;
 
+  StreamSubscription<DatabaseEvent>? _listener;
+
   @override
   void initState() {
     super.initState();
     _rootRef = FirebaseDatabase.instance.ref();
     _carregarEstadoInicial();
-    _ouvirMudancas(); // opcional, mas útil se outros lugares mudarem o estado
+    _ouvirMudancas();
+  }
+
+  @override
+  void dispose() {
+    _listener?.cancel(); // MUITO importante
+    super.dispose();
   }
 
   Future<void> _carregarEstadoInicial() async {
     final snapshot = await _rootRef.get();
     final data = snapshot.value as Map<dynamic, dynamic>?;
 
-    if (data == null) return;
+    if (data == null || !mounted) return;
 
     setState(() {
       luzesAtivadas = (data['luz'] ?? false) as bool;
@@ -39,10 +49,10 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   }
 
   void _ouvirMudancas() {
-    _rootRef.onValue.listen((event) {
+    _listener = _rootRef.onValue.listen((event) {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
 
-      if (data == null) return;
+      if (data == null || !mounted) return; // evita setState após dispose
 
       setState(() {
         luzesAtivadas = (data['luz'] ?? false) as bool;

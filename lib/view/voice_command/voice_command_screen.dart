@@ -13,6 +13,17 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
   late stt.SpeechToText _speech;
   String _lastWords = '';
 
+  final List<String> _commands = [
+    'Ligar luz',
+    'Desligar luz',
+    'Ativar modo furtivo',
+    'Desativar modo furtivo',
+    'Modo turbo',
+    'Desativar turbo',
+    'Frente',
+    'Parar',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +60,7 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
           Expanded(
             flex: 1,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // antes era end
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
                   'Fale um comando...',
@@ -79,38 +90,72 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
             ),
           ),
 
-          // Microfone (um pouco mais pra cima)
+          // Microfone
           Expanded(
-            flex: 2, // dá mais espaço pra esse bloco
+            flex: 2,
             child: Align(
-              alignment: const Alignment(0, -0.8), // sobe o botão
+              alignment: const Alignment(0, -0.8),
               child: _buildMicrophoneButton(),
             ),
           ),
 
-          // Sugestões (mais perto do centro)
-          Expanded(
-            flex: 1,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 8),
+          // Caixa de sugestões (menor, com divisores)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Container(
+              height: 200, // ajusta se quiser mais/menos alto
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1D2E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     'Sugestões de Comandos',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.15,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  _buildCommandChips(),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _commands.length,
+                      itemBuilder: (context, index) {
+                        final label = _commands[index];
+                        return GestureDetector(
+                          onTap: () => _executeCommand(label),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 19,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.white.withOpacity(0.15),
+                        height: 1,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 60),
         ],
       ),
     );
@@ -164,59 +209,10 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
     );
   }
 
-  Widget _buildCommandChips() {
-    final commands = [
-      'Ligar luz',
-      'Desligar luz',
-      'Ativar modo furtivo',
-      'Desativar modo furtivo',
-      'Modo turbo',
-      'Desativar turbo',
-      'Frente',
-      'Parar',
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        alignment: WrapAlignment.center,
-        children:
-        commands.map((command) => _buildCommandChip(command)).toList(),
-      ),
-    );
-  }
-
-  Widget _buildCommandChip(String label) {
-    return GestureDetector(
-      onTap: () => _executeCommand(label),
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1D2E),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _toggleListening() async {
     final vm = context.read<CarViewModel>();
 
     if (!isListening) {
-      // iniciar
       final available = await _speech.initialize(
         onStatus: (status) {
           if (status == 'notListening') {
@@ -246,14 +242,12 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
         );
       }
     } else {
-      // parar
       await _speech.stop();
       setState(() => isListening = false);
     }
   }
 
   void _executeCommand(String command) {
-    print('Clique no chip: $command');
     final vm = context.read<CarViewModel>();
     _processVoiceCommand(command, vm);
     setState(() {
@@ -263,40 +257,24 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
 
   void _processVoiceCommand(String text, CarViewModel vm) {
     final normalized = text.toLowerCase();
-    print('Processando comando de voz: "$normalized"');
 
-    // 1. Desligar / desativar primeiro
     if (normalized.contains('desligar luz')) {
-      print('-> toggleLuz(false)');
       vm.toggleLuz(false);
     } else if (normalized.contains('desativar modo furtivo')) {
-      print('-> toggleStealth(false)');
       vm.toggleStealth(false);
     } else if (normalized.contains('desativar turbo')) {
-      print('-> toggleTurbo(false)');
       vm.toggleTurbo(false);
-
-      // 2. Depois ligar / ativar
     } else if (normalized.contains('ligar luz')) {
-      print('-> toggleLuz(true)');
       vm.toggleLuz(true);
     } else if (normalized.contains('ativar modo furtivo')) {
-      print('-> toggleStealth(true)');
       vm.toggleStealth(true);
     } else if (normalized.contains('modo turbo') ||
         normalized.contains('ativar turbo')) {
-      print('-> toggleTurbo(true)');
       vm.toggleTurbo(true);
-
-      // 3. Movimento
     } else if (normalized.contains('frente')) {
-      print('-> updateJoystick(0, 1)');
       vm.updateJoystick(0, 1);
     } else if (normalized.contains('parar')) {
-      print('-> updateJoystick(0, 0)');
       vm.updateJoystick(0, 0);
-    } else {
-      print('Nenhum comando reconhecido para: "$normalized"');
     }
   }
 }

@@ -1,11 +1,16 @@
 import 'package:firebase_database/firebase_database.dart';
+import '../model/commands.dart';
 
 class FirebaseService {
   FirebaseService._();
   static final instance = FirebaseService._();
 
   final FirebaseDatabase _db = FirebaseDatabase.instance;
-  DatabaseReference get _rootRef => _db.ref(); // raiz
+
+  // Referência para a raiz do Realtime Database
+  DatabaseReference get _rootRef => _db.ref();
+
+  // --- Atualizações pontuais ---
 
   Future<void> atualizarLuzes(bool ligado) async {
     print('FirebaseService.atualizarLuzes: $ligado');
@@ -34,10 +39,9 @@ class FirebaseService {
   }
 
   Future<void> atualizarDestino({
-    required int destinoX,
-    required int destinoY,
+    required double destinoX,
+    required double destinoY,
   }) async {
-    print('FirebaseService.atualizarDestino: x=$destinoX, y=$destinoY');
     await _rootRef.update({
       'modo_automatico': true,
       'destino_x': destinoX,
@@ -48,5 +52,18 @@ class FirebaseService {
   Future<void> setManualMode() async {
     print('FirebaseService.setManualMode');
     await _rootRef.update({'modo_automatico': false});
+  }
+
+  Future<void> atualizarDistancia(int distancia) async {
+    print('FirebaseService.atualizarDistancia: $distancia');
+    await _rootRef.update({'distancia': distancia});
+  }
+
+  // --- Atualizar tudo de uma vez (opcional) ---
+
+  Future<void> salvarCommands(Commands command) async {
+    final json = command.toJson();
+    print('FirebaseService.salvarCommands: $json');
+    await _rootRef.set(json);
   }
 }

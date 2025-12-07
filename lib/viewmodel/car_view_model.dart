@@ -1,4 +1,5 @@
 // car_view_model.dart
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import '../data/model/commands.dart';
 import '../data/service/firebase_service.dart';
@@ -15,9 +16,15 @@ class CarViewModel extends ChangeNotifier {
     modoAutomatico: false,
     destinoX: 0,
     destinoY: 0,
+    distancia: 0,
   );
 
+  CarViewModel() {
+    _iniciarListenerDistancia();
+  }
+
   Commands get command => _command;
+  int get distancia => _command.distancia;
 
   // Joystick
   void updateJoystick(int x, int y) {
@@ -47,16 +54,13 @@ class CarViewModel extends ChangeNotifier {
 
   // Modo automático
   Future<void> setDestino(double x, double y) async {
-    final int dx = x.toInt();
-    final int dy = y.toInt();
-
     _command = _command.copyWith(
       modoAutomatico: true,
-      destinoX: dx,
-      destinoY: dy,
+      destinoX: x,
+      destinoY: y,
     );
 
-    await _service.atualizarDestino(destinoX: dx, destinoY: dy);
+    await _service.atualizarDestino(destinoX: x, destinoY: y);
     notifyListeners();
   }
 
@@ -64,5 +68,17 @@ class CarViewModel extends ChangeNotifier {
     _command = _command.copyWith(modoAutomatico: false);
     await _service.setManualMode();
     notifyListeners();
+  }
+
+  // Listener da distância no Firebase
+  void _iniciarListenerDistancia() {
+    FirebaseDatabase.instance.ref().child('distancia').onValue.listen((event) {
+      final valor = event.snapshot.value;
+      final intDistancia =
+      (valor is int) ? valor : int.tryParse(valor?.toString() ?? '0') ?? 0;
+
+      _command = _command.copyWith(distancia: intDistancia);
+      notifyListeners();
+    });
   }
 }
