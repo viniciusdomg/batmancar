@@ -17,9 +17,6 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
 
   @override
   Widget build(BuildContext context) {
-    final mapWidth = (maxX + 1) * cellSize;
-    final mapHeight = (maxY + 1) * cellSize;
-
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
@@ -38,12 +35,6 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: reset,
-            icon: const Icon(Icons.refresh, color: Colors.white),
-          )
-        ],
       ),
       body: Column(
         children: [
@@ -219,7 +210,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     setState(() => _sending = true);
 
     try {
-      // 1. Verificar / pedir permissão de localização
+      // 1. Permissão
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -239,7 +230,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
         }
       }
 
-      // 2. Obter posição atual do celular
+      // 2. Posição atual
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -248,7 +239,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
 
       // 3. Enviar para o Firebase via ViewModel
       final carViewModel = context.read<CarViewModel>();
-      await carViewModel.setDestino(lat, lng); // destino_x / destino_y como double
+      await carViewModel.setDestino(lat, lng);
 
       setState(() {
         _lastLat = lat;
@@ -294,7 +285,6 @@ class _FakeMapPainter extends CustomPainter {
     final rows = (size.height / cell).floor();
     final cols = (size.width / cell).floor();
 
-    // Grade
     for (int i = 0; i <= rows; i++) {
       canvas.drawLine(
         Offset(0, i * cell),
@@ -310,7 +300,6 @@ class _FakeMapPainter extends CustomPainter {
       );
     }
 
-    // Rota
     final routePaint = Paint()
       ..color = const Color(0xFF2547F4)
       ..strokeWidth = 3
@@ -333,7 +322,6 @@ class _FakeMapPainter extends CustomPainter {
 
     canvas.drawPath(path, routePaint);
 
-    // Ponto de partida
     final startPaint = Paint()..color = Colors.greenAccent;
     canvas.drawCircle(
       Offset(size.width * 0.15, size.height * 0.8),
@@ -341,7 +329,6 @@ class _FakeMapPainter extends CustomPainter {
       startPaint,
     );
 
-    // Destino
     final endPaint = Paint()..color = Colors.redAccent;
     canvas.drawCircle(
       Offset(size.width * 0.85, size.height * 0.3),
