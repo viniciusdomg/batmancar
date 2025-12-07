@@ -17,6 +17,9 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
 
   @override
   Widget build(BuildContext context) {
+    final mapWidth = (maxX + 1) * cellSize;
+    final mapHeight = (maxY + 1) * cellSize;
+
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
@@ -35,6 +38,12 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: reset,
+            icon: const Icon(Icons.refresh, color: Colors.white),
+          )
+        ],
       ),
       body: Column(
         children: [
