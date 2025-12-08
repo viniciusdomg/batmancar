@@ -7,7 +7,7 @@ class Commands {
   final bool modoAutomatico;
   final double destinoX;
   final double destinoY;
-  final int distancia;
+  final double distancia;
 
   Commands({
     required this.joystickX,
@@ -60,7 +60,7 @@ class Commands {
     bool? modoAutomatico,
     double? destinoX,
     double? destinoY,
-    int? distancia,
+    double? distancia,
   }) {
     return Commands(
       joystickX: joystickX ?? this.joystickX,

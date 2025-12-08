@@ -57,7 +57,7 @@ class _TelaControleManualState extends State<TelaControleManual> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildInfoCard(
-                  'Sensor de Obstáculo (cm)',
+                  'Sensor de Distância (cm)',
                   vm.distancia,
                 ),
                 const SizedBox(height: 12),
@@ -66,14 +66,14 @@ class _TelaControleManualState extends State<TelaControleManual> {
                     Expanded(
                       child: _buildInfoCard(
                         'Joystick X',
-                        joystickX,
+                        joystickX.toDouble(),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildInfoCard(
                         'Joystick Y',
-                        joystickY,
+                        joystickY.toDouble(),
                       ),
                     ),
                   ],
@@ -188,7 +188,7 @@ class _TelaControleManualState extends State<TelaControleManual> {
   }
 
   // Card genérico (usado para distância e joystick)
-  Widget _buildInfoCard(String label, int value) {
+  Widget _buildInfoCard(String label, double value) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -212,7 +212,7 @@ class _TelaControleManualState extends State<TelaControleManual> {
           ),
           const SizedBox(height: 8),
           Text(
-            value.toString(),
+            value.toStringAsFixed(1), // 1 casa decimal, por exemplo
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,

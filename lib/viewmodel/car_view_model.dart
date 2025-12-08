@@ -24,7 +24,7 @@ class CarViewModel extends ChangeNotifier {
   }
 
   Commands get command => _command;
-  int get distancia => _command.distancia;
+  double get distancia => _command.distancia;
 
   // Joystick
   void updateJoystick(int x, int y) {
@@ -74,10 +74,10 @@ class CarViewModel extends ChangeNotifier {
   void _iniciarListenerDistancia() {
     FirebaseDatabase.instance.ref().child('distancia').onValue.listen((event) {
       final valor = event.snapshot.value;
-      final intDistancia =
-      (valor is int) ? valor : int.tryParse(valor?.toString() ?? '0') ?? 0;
+      final doubleDistancia =
+      (valor is num) ? valor.toDouble() : double.tryParse(valor?.toString() ?? '0') ?? 0.0;
 
-      _command = _command.copyWith(distancia: intDistancia);
+      _command = _command.copyWith(distancia: doubleDistancia);
       notifyListeners();
     });
   }
