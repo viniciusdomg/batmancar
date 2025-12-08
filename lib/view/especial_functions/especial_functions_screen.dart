@@ -13,7 +13,7 @@ class TelaFuncoesEspeciais extends StatefulWidget {
 
 class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   final _firebaseService = FirebaseService.instance;
-  late final DatabaseReference _rootRef;
+  late final DatabaseReference _inputsRef;
 
   bool luzesAtivadas = false;
   bool turboAtivado = false;
@@ -24,19 +24,20 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   @override
   void initState() {
     super.initState();
-    _rootRef = FirebaseDatabase.instance.ref();
+    final rootRef = FirebaseDatabase.instance.ref();
+    _inputsRef = rootRef.child('inputs');
     _carregarEstadoInicial();
     _ouvirMudancas();
   }
 
   @override
   void dispose() {
-    _listener?.cancel(); // MUITO importante
+    _listener?.cancel();
     super.dispose();
   }
 
   Future<void> _carregarEstadoInicial() async {
-    final snapshot = await _rootRef.get();
+    final snapshot = await _inputsRef.get();
     final data = snapshot.value as Map<dynamic, dynamic>?;
 
     if (data == null || !mounted) return;
@@ -49,10 +50,10 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   }
 
   void _ouvirMudancas() {
-    _listener = _rootRef.onValue.listen((event) {
+    _listener = _inputsRef.onValue.listen((event) {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
 
-      if (data == null || !mounted) return; // evita setState após dispose
+      if (data == null || !mounted) return;
 
       setState(() {
         luzesAtivadas = (data['luz'] ?? false) as bool;
