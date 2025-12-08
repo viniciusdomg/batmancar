@@ -51,7 +51,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
                       color: const Color(0xFF1A1D2D),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF2547F4).withOpacity(0.4),
+                        color: const Color(0xFF2547F4).withValues(alpha: 0.4),
                       ),
                     ),
                     child: ClipRRect(
@@ -69,7 +69,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: Colors.black.withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Text(
@@ -142,7 +142,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
           color: const Color(0xFF1A1D2D),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
           ),
         ),
         child: Column(
@@ -151,7 +151,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 14,
               ),
             ),
@@ -178,7 +178,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
         onPressed: _sending ? null : () => _sendDestination(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2547F4),
-          shadowColor: const Color(0xFF2547F4).withOpacity(0.5),
+          shadowColor: const Color(0xFF2547F4).withValues(alpha: 0.5),
           elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -278,7 +278,7 @@ class _FakeMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.07)
+      ..color = Colors.white.withValues(alpha: 0.07)
       ..strokeWidth = 1;
 
     const cell = 32.0;
