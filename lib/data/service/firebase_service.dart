@@ -14,17 +14,17 @@ class FirebaseService {
 
   Future<void> atualizarLuzes(bool ligado) async {
     print('FirebaseService.atualizarLuzes: $ligado');
-    await _rootRef.update({'luz': ligado});
+    await _rootRef.child('inputs').update({'luz': ligado});
   }
 
   Future<void> atualizarTurbo(bool ativado) async {
     print('FirebaseService.atualizarTurbo: $ativado');
-    await _rootRef.update({'turbo': ativado});
+    await _rootRef.child('inputs').update({'turbo': ativado});
   }
 
   Future<void> atualizarStealth(bool ativado) async {
     print('FirebaseService.atualizarStealth: $ativado');
-    await _rootRef.update({'stealth': ativado});
+    await _rootRef.child('inputs').update({'stealth': ativado});
   }
 
   Future<void> atualizarJoystick({
@@ -32,7 +32,7 @@ class FirebaseService {
     required int joystickY,
   }) async {
     print('FirebaseService.atualizarJoystick: x=$joystickX, y=$joystickY');
-    await _rootRef.update({
+    await _rootRef.child('inputs').update({
       'joystick_x': joystickX,
       'joystick_y': joystickY,
     });
@@ -42,7 +42,7 @@ class FirebaseService {
     required double destinoX,
     required double destinoY,
   }) async {
-    await _rootRef.update({
+    await _rootRef.child('inputs').update({
       'modo_automatico': true,
       'destino_x': destinoX,
       'destino_y': destinoY,
@@ -51,7 +51,7 @@ class FirebaseService {
 
   Future<void> setManualMode() async {
     print('FirebaseService.setManualMode');
-    await _rootRef.update({'modo_automatico': false});
+    await _rootRef.child('inputs').update({'modo_automatico': false});
   }
 
   Future<void> atualizarDistancia(int distancia) async {
@@ -61,9 +61,8 @@ class FirebaseService {
 
   // --- Atualizar tudo de uma vez (opcional) ---
 
-  Future<void> salvarCommands(Commands command) async {
-    final json = command.toJson();
-    print('FirebaseService.salvarCommands: $json');
-    await _rootRef.set(json);
-  }
+  // Future<void> salvarCommands(Commands command) async {
+  //   final json = command.toJson();
+  //   await _rootRef.set(json);
+  // }
 }

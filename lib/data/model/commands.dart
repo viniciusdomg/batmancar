@@ -37,16 +37,29 @@ class Commands {
 
   factory Commands.fromMap(Map<String, dynamic> map) {
 
+    final inputs = map['inputs'] != null
+        ? Map<dynamic, dynamic>.from(map['inputs'] as Map)
+        : {};
+
     return Commands(
-      joystickX: map['joystick_x'] ?? 0,
-      joystickY: map['joystick_y'] ?? 0,
-      luz: map['luz'] ?? false,
-      turbo: map['turbo'] ?? false,
-      stealth: map['stealth'] ?? false,
-      modoAutomatico: map['modo_automatico'] ?? false,
-      destinoX: map['destino_x'] ?? 0,
-      destinoY: map['destino_y'] ?? 0,
-      distancia: map['distancia'] ?? 0,
+      joystickX: inputs['joystick_x'] ?? 0,
+      joystickY: inputs['joystick_y'] ?? 0,
+      luz: inputs['luz'] ?? false,
+      turbo: inputs['turbo'] ?? false,
+      stealth: inputs['stealth'] ?? false,
+      modoAutomatico: inputs['modo_automatico'] ?? false,
+
+      destinoX: (inputs['destino_x'] is int)
+          ? (inputs['destino_x'] as int).toDouble()
+          : (inputs['destino_x'] ?? 0.0),
+
+      destinoY: (inputs['destino_y'] is int)
+          ? (inputs['destino_y'] as int).toDouble()
+          : (inputs['destino_y'] ?? 0.0),
+
+      distancia: (map['distancia'] is int)
+          ? (map['distancia'] as int).toDouble()
+          : (map['distancia'] ?? 0.0),
     );
   }
 

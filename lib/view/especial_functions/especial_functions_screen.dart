@@ -41,10 +41,12 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
 
     if (data == null || !mounted) return;
 
+    final inputs = data['inputs'] as Map<dynamic, dynamic>? ?? {};
+
     setState(() {
-      luzesAtivadas = (data['luz'] ?? false) as bool;
-      turboAtivado = (data['turbo'] ?? false) as bool;
-      stealthAtivado = (data['stealth'] ?? false) as bool;
+      luzesAtivadas = (inputs['luz'] ?? false) as bool;
+      turboAtivado = (inputs['turbo'] ?? false) as bool;
+      stealthAtivado = (inputs['stealth'] ?? false) as bool;
     });
   }
 
@@ -52,12 +54,14 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
     _listener = _rootRef.onValue.listen((event) {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
 
-      if (data == null || !mounted) return; // evita setState após dispose
+      if (data == null || !mounted) return;
+
+      final inputs = data['inputs'] as Map<dynamic, dynamic>? ?? {};
 
       setState(() {
-        luzesAtivadas = (data['luz'] ?? false) as bool;
-        turboAtivado = (data['turbo'] ?? false) as bool;
-        stealthAtivado = (data['stealth'] ?? false) as bool;
+        luzesAtivadas = (inputs['luz'] ?? false) as bool;
+        turboAtivado = (inputs['turbo'] ?? false) as bool;
+        stealthAtivado = (inputs['stealth'] ?? false) as bool;
       });
     });
   }
