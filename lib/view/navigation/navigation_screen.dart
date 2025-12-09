@@ -1,6 +1,7 @@
 import 'package:batmancar/view/automatic_mode/automatic_mode_screen.dart';
 import 'package:batmancar/view/joystick_control/joystick_control_screen.dart';
 import 'package:batmancar/view/especial_functions/especial_functions_screen.dart';
+import 'package:batmancar/view/navigation/widgets/batman_start_button.dart';
 import 'package:batmancar/view/voice_command/voice_command_screen.dart';
 import 'package:batmancar/viewmodel/car_view_model.dart';
 import 'package:flutter/material.dart';
@@ -97,34 +98,11 @@ class TelaInicialBatman extends StatelessWidget {
           ),
 
           // Botão redondo de Ligar/Desligar
-          Padding(
-            padding: const EdgeInsets.only(bottom: 150),
-            child: GestureDetector(
-              onTap: () => vm.toggleIgnicao(!vm.ignicao),
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: vm.ignicao ? Colors.red : const Color(0xFF2547F4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Image.asset(
-                    'assets/icon/batman.png',
-                    width: 180,
-                    height: 180,
-                    color: Colors.white, // opcional, se quiser “tintar” o ícone
-                  ),
-                ),
-              ),
-            ),
+          BatmanStartButton(
+            ignicao: vm.ignicao,
+            onTap: () {
+              vm.toggleIgnicao(!vm.ignicao);
+            },
           ),
         ],
       ),
