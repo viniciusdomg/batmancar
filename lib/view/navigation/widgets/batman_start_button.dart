@@ -63,7 +63,7 @@ class _BatmanStartButtonState extends State<BatmanStartButton>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // --- CAMADA 1: A ONDA (O EFEITO PISCANDO) ---
+              //A ONDA (O EFEITO PISCANDO)
               if (!widget.ignicao) // Só mostra a onda se estiver desligado
                 AnimatedBuilder(
                   animation: _controller,
@@ -82,7 +82,6 @@ class _BatmanStartButtonState extends State<BatmanStartButton>
                   },
                 ),
 
-              // --- CAMADA 2: O CÍRCULO DO BOTÃO ---
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 width: 150,
@@ -93,7 +92,7 @@ class _BatmanStartButtonState extends State<BatmanStartButton>
                   boxShadow: [
                     BoxShadow(
                       color: widget.ignicao
-                          ? activeRed.withValues(alpha: 0.6) // Brilho vermelho intenso
+                          ? activeRed.withValues(alpha: 0.6)
                           : Colors.black.withValues(alpha: 0.5),
                       blurRadius: widget.ignicao ? 25 : 15,
                       spreadRadius: widget.ignicao ? 2 : 0,
@@ -101,7 +100,7 @@ class _BatmanStartButtonState extends State<BatmanStartButton>
                     ),
                   ],
                 ),
-                // --- CAMADA 3: O CONTEÚDO (MORCEGO + POWER) ---
+
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -113,14 +112,9 @@ class _BatmanStartButtonState extends State<BatmanStartButton>
                       fit: BoxFit.contain,
                     ),
 
-                    // B. O Ícone de Power (Sobreposto no centro)
                     Icon(
-                      Icons.power_settings_new_rounded, // Ícone arredondado fica mais bonito
-                      size: 20, // Tamanho do ícone
-                      // TRUQUE VISUAL:
-                      // Se o botão é Azul, o ícone é Azul (parece vazado/transparente).
-                      // Se o botão é Vermelho, o ícone é Vermelho.
-                      // Isso faz parecer que cortaram o morcego no meio!
+                      Icons.power_settings_new_rounded,
+                      size: 20,
                       color: widget.ignicao ? activeRed : batmanBlue,
 
                     ),
