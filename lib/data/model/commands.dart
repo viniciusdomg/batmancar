@@ -4,6 +4,8 @@ class Commands {
   final bool luz;
   final bool turbo;
   final bool stealth;
+  final bool ignicao;
+  final bool cabine;
   final bool modoAutomatico;
   final double destinoX;
   final double destinoY;
@@ -15,6 +17,8 @@ class Commands {
     required this.luz,
     required this.turbo,
     required this.stealth,
+    required this.ignicao,
+    required this.cabine,
     required this.modoAutomatico,
     required this.destinoX,
     required this.destinoY,
@@ -28,6 +32,8 @@ class Commands {
       'luz': luz,
       'turbo': turbo,
       'stealth': stealth,
+      'ignicao': ignicao,
+      'cabine': cabine,
       'modo_automatico': modoAutomatico,
       'destino_x': destinoX,
       'destino_y': destinoY,
@@ -47,6 +53,8 @@ class Commands {
       luz: inputs['luz'] ?? false,
       turbo: inputs['turbo'] ?? false,
       stealth: inputs['stealth'] ?? false,
+      ignicao: inputs['ignicao'] ?? false,
+      cabine: inputs['cabine'] ?? false,
       modoAutomatico: inputs['modo_automatico'] ?? false,
 
       destinoX: (inputs['destino_x'] is int)
@@ -70,6 +78,8 @@ class Commands {
     bool? luz,
     bool? turbo,
     bool? stealth,
+    bool? ignicao,
+    bool? cabine,
     bool? modoAutomatico,
     double? destinoX,
     double? destinoY,
@@ -81,6 +91,8 @@ class Commands {
       luz: luz ?? this.luz,
       turbo: turbo ?? this.turbo,
       stealth: stealth ?? this.stealth,
+      ignicao: ignicao ?? this.ignicao,
+      cabine: cabine ?? this.cabine,
       modoAutomatico: modoAutomatico ?? this.modoAutomatico,
       destinoX: destinoX ?? this.destinoX,
       destinoY: destinoY ?? this.destinoY,

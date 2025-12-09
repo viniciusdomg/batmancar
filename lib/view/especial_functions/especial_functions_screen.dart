@@ -18,6 +18,7 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   bool luzesAtivadas = false;
   bool turboAtivado = false;
   bool stealthAtivado = false;
+  bool cabineAtivada = false;
 
   StreamSubscription<DatabaseEvent>? _listener;
 
@@ -46,6 +47,7 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
       luzesAtivadas = (data['luz'] ?? false) as bool;
       turboAtivado = (data['turbo'] ?? false) as bool;
       stealthAtivado = (data['stealth'] ?? false) as bool;
+      cabineAtivada = (data['cabine'] ?? false) as bool;
     });
   }
 
@@ -59,6 +61,7 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
         luzesAtivadas = (data['luz'] ?? false) as bool;
         turboAtivado = (data['turbo'] ?? false) as bool;
         stealthAtivado = (data['stealth'] ?? false) as bool;
+        cabineAtivada = (data['cabine'] ?? false) as bool;
       });
     });
   }
@@ -108,6 +111,16 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
                     onChanged: (value) {
                       setState(() => turboAtivado = value);
                       _onFunctionToggle('Turbo', value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFunctionItem(
+                    icon: Icons.airline_seat_recline_extra  ,
+                    label: 'Cabine',
+                    value: cabineAtivada,
+                    onChanged: (value) {
+                      setState(() => cabineAtivada = value);
+                      _onFunctionToggle('Cabine', value);
                     },
                   ),
                   const SizedBox(height: 16),
@@ -231,6 +244,9 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
           break;
         case 'Turbo':
           await _firebaseService.atualizarTurbo(enabled);
+          break;
+        case 'Cabine':
+          await _firebaseService.atualizarCabine(enabled);
           break;
         case 'Stealth':
           await _firebaseService.atualizarStealth(enabled);

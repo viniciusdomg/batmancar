@@ -88,4 +88,12 @@ class FirebaseService {
       if (distancia != null) 'distancia': distancia,
     });
   }
+
+  Future<void> atualizarIgnicao(bool ligado) async {
+    await _inputsRef.update({'ignicao': ligado});
+  }
+
+  Future<void> atualizarCabine(bool ativado) async {
+    await _inputsRef.update({'cabine': ativado});
+  }
 }

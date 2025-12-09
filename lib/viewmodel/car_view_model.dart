@@ -13,6 +13,8 @@ class CarViewModel extends ChangeNotifier {
     luz: false,
     turbo: false,
     stealth: false,
+    ignicao: false,
+    cabine:false,
     modoAutomatico: false,
     destinoX: 0,
     destinoY: 0,
@@ -24,7 +26,9 @@ class CarViewModel extends ChangeNotifier {
   }
 
   Commands get command => _command;
+
   double get distancia => _command.distancia;
+  bool get ignicao => _command.ignicao;
 
   // Joystick
   void updateJoystick(int x, int y) {
@@ -45,8 +49,12 @@ class CarViewModel extends ChangeNotifier {
       destinoX: desligandoAutomatico ? 0.0 : null,
       destinoY: desligandoAutomatico ? 0.0 : null,
     );
+  }
 
-    // Sem notifyListeners() por performance (como você já tinha feito)
+  Future<void> toggleIgnicao(bool value) async {
+    _command = _command.copyWith(ignicao: value);
+    await _service.atualizarIgnicao(value);
+    notifyListeners();
   }
 
   // Funções especiais
@@ -68,6 +76,12 @@ class CarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleCabine(bool value) async {
+    _command = _command.copyWith(cabine: value);
+    await _service.atualizarCabine(value);
+    notifyListeners();
+  }
+
   // Modo automático
   Future<void> setDestino(double x, double y) async {
     _command = _command.copyWith(
@@ -84,7 +98,7 @@ class CarViewModel extends ChangeNotifier {
     _command = _command.copyWith(
       modoAutomatico: false,
       destinoX: 0,
-      destinoY: 0
+      destinoY: 0,
     );
     await _service.setManualMode();
     notifyListeners();
