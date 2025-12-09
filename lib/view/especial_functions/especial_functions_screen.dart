@@ -13,7 +13,7 @@ class TelaFuncoesEspeciais extends StatefulWidget {
 
 class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   final _firebaseService = FirebaseService.instance;
-  late final DatabaseReference _rootRef;
+  late final DatabaseReference _inputsRef;
 
   bool luzesAtivadas = false;
   bool turboAtivado = false;
@@ -24,44 +24,41 @@ class _TelaFuncoesEspeciaisState extends State<TelaFuncoesEspeciais> {
   @override
   void initState() {
     super.initState();
-    _rootRef = FirebaseDatabase.instance.ref();
+    final rootRef = FirebaseDatabase.instance.ref();
+    _inputsRef = rootRef.child('inputs');
     _carregarEstadoInicial();
     _ouvirMudancas();
   }
 
   @override
   void dispose() {
-    _listener?.cancel(); // MUITO importante
+    _listener?.cancel();
     super.dispose();
   }
 
   Future<void> _carregarEstadoInicial() async {
-    final snapshot = await _rootRef.get();
+    final snapshot = await _inputsRef.get();
     final data = snapshot.value as Map<dynamic, dynamic>?;
 
     if (data == null || !mounted) return;
 
-    final inputs = data['inputs'] as Map<dynamic, dynamic>? ?? {};
-
     setState(() {
-      luzesAtivadas = (inputs['luz'] ?? false) as bool;
-      turboAtivado = (inputs['turbo'] ?? false) as bool;
-      stealthAtivado = (inputs['stealth'] ?? false) as bool;
+      luzesAtivadas = (data['luz'] ?? false) as bool;
+      turboAtivado = (data['turbo'] ?? false) as bool;
+      stealthAtivado = (data['stealth'] ?? false) as bool;
     });
   }
 
   void _ouvirMudancas() {
-    _listener = _rootRef.onValue.listen((event) {
+    _listener = _inputsRef.onValue.listen((event) {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
 
       if (data == null || !mounted) return;
 
-      final inputs = data['inputs'] as Map<dynamic, dynamic>? ?? {};
-
       setState(() {
-        luzesAtivadas = (inputs['luz'] ?? false) as bool;
-        turboAtivado = (inputs['turbo'] ?? false) as bool;
-        stealthAtivado = (inputs['stealth'] ?? false) as bool;
+        luzesAtivadas = (data['luz'] ?? false) as bool;
+        turboAtivado = (data['turbo'] ?? false) as bool;
+        stealthAtivado = (data['stealth'] ?? false) as bool;
       });
     });
   }
