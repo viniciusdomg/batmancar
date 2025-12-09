@@ -28,6 +28,12 @@ class CarViewModel extends ChangeNotifier {
 
   // Joystick
   void updateJoystick(int x, int y) {
+    var verificaModoAutomatico = _command.modoAutomatico;
+
+    if(verificaModoAutomatico) {
+      _command = _command.copyWith(
+        modoAutomatico: false, destinoY: 0, destinoX: 0);
+    }
     _command = _command.copyWith(joystickX: x, joystickY: y);
     _service.atualizarJoystick(joystickX: x, joystickY: y);
     // sem notifyListeners() por performance
@@ -65,7 +71,11 @@ class CarViewModel extends ChangeNotifier {
   }
 
   Future<void> setManualMode() async {
-    _command = _command.copyWith(modoAutomatico: false);
+    _command = _command.copyWith(
+      modoAutomatico: false,
+      destinoX: 0,
+      destinoY: 0
+    );
     await _service.setManualMode();
     notifyListeners();
   }
