@@ -28,15 +28,25 @@ class CarViewModel extends ChangeNotifier {
 
   // Joystick
   void updateJoystick(int x, int y) {
-    var verificaModoAutomatico = _command.modoAutomatico;
+    final bool desligandoAutomatico = _command.modoAutomatico;
 
-    if(verificaModoAutomatico) {
-      _command = _command.copyWith(
-        modoAutomatico: false, destinoY: 0, destinoX: 0);
-    }
-    _command = _command.copyWith(joystickX: x, joystickY: y);
-    _service.atualizarJoystick(joystickX: x, joystickY: y);
-    // sem notifyListeners() por performance
+    _command = _command.copyWith(
+      joystickX: x,
+      joystickY: y,
+      modoAutomatico: desligandoAutomatico ? false : null,
+      destinoX: desligandoAutomatico ? 0 : null,
+      destinoY: desligandoAutomatico ? 0 : null,
+    );
+
+    _service.atualizarJoystick(
+      joystickX: x,
+      joystickY: y,
+      modoAutomatico: desligandoAutomatico ? false : null,
+      destinoX: desligandoAutomatico ? 0.0 : null,
+      destinoY: desligandoAutomatico ? 0.0 : null,
+    );
+
+    // Sem notifyListeners() por performance (como você já tinha feito)
   }
 
   // Funções especiais

@@ -31,12 +31,22 @@ class FirebaseService {
   Future<void> atualizarJoystick({
     required int joystickX,
     required int joystickY,
+    bool? modoAutomatico,
+    double? destinoX,
+    double? destinoY,
   }) async {
-    print('FirebaseService.atualizarJoystick: x=$joystickX, y=$joystickY');
-    await _inputsRef.update({
+    final Map<String, dynamic> updateMap = {
       'joystick_x': joystickX,
       'joystick_y': joystickY,
-    });
+    };
+
+
+    if (modoAutomatico != null) updateMap['modo_automatico'] = modoAutomatico;
+    if (destinoX != null) updateMap['destino_x'] = destinoX;
+    if (destinoY != null) updateMap['destino_y'] = destinoY;
+
+    print('FirebaseService.atualizarJoystick: $updateMap');
+    await _inputsRef.update(updateMap);
   }
 
   Future<void> atualizarDestino({
@@ -52,7 +62,11 @@ class FirebaseService {
 
   Future<void> setManualMode() async {
     print('FirebaseService.setManualMode');
-    await _inputsRef.update({'modo_automatico': false});
+    await _inputsRef.update({
+      'modo_automatico': false,
+      'destino_x': 0,
+      'destino_y': 0,
+    });
   }
 
   // distancia continua na raiz
