@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:provider/provider.dart';
+import 'package:batmancar/viewmodel/car_view_model.dart';
 
 class TelaComandoVoz extends StatefulWidget {
   @override
@@ -7,6 +10,25 @@ class TelaComandoVoz extends StatefulWidget {
 
 class _TelaComandoVozState extends State<TelaComandoVoz> {
   bool isListening = false;
+  late stt.SpeechToText _speech;
+  String _lastWords = '';
+
+  final List<String> _commands = [
+    'Ligar luz',
+    'Desligar luz',
+    'Ativar modo furtivo',
+    'Desativar modo furtivo',
+    'Modo turbo',
+    'Desativar turbo',
+    'Frente',
+    'Parar',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +56,11 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
       ),
       body: Column(
         children: [
-          // Área superior com texto
+          // Texto
           Expanded(
             flex: 1,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
                   'Fale um comando...',
@@ -50,47 +72,99 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
+                if (_lastWords.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      _lastWords,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
-          // Área central com botão de microfone
+
+          // Microfone
           Expanded(
-            flex: 1,
-            child: Center(
+            flex: 2,
+            child: Align(
+              alignment: const Alignment(0, -0.8),
               child: _buildMicrophoneButton(),
             ),
           ),
-          // Área inferior com sugestões de comandos
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Text(
-                  'Sugestões de Comandos',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.15,
-                  ),
+
+          // Caixa de sugestões (menor, com divisores)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Container(
+              height: 200, // ajusta se quiser mais/menos alto
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1D2E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
                 ),
-                const SizedBox(height: 12),
-                _buildCommandChips(),
-              ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sugestões de Comandos',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _commands.length,
+                      itemBuilder: (context, index) {
+                        final label = _commands[index];
+                        return GestureDetector(
+                          onTap: () => _executeCommand(label),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 19,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.white.withOpacity(0.15),
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 60),
         ],
       ),
     );
   }
 
-  // Botão de microfone com círculos concêntricos
   Widget _buildMicrophoneButton() {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Círculo externo maior (background)
         Container(
           width: 256,
           height: 256,
@@ -99,7 +173,6 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
             color: const Color(0xFF2547F4).withOpacity(0.1),
           ),
         ),
-        // Círculo médio
         Container(
           width: 192,
           height: 192,
@@ -108,15 +181,15 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
             color: const Color(0xFF2547F4).withOpacity(0.2),
           ),
         ),
-        // Botão principal de microfone
         GestureDetector(
           onTap: _toggleListening,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             width: 128,
             height: 128,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF2547F4),
+              color: isListening ? Colors.red : const Color(0xFF2547F4),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF2547F4).withOpacity(0.3),
@@ -136,87 +209,72 @@ class _TelaComandoVozState extends State<TelaComandoVoz> {
     );
   }
 
-  // Chips de sugestões de comandos
-  Widget _buildCommandChips() {
-    final commands = [
-      'Ligar luz',
-      'Ativar stealth',
-      'Modo turbo',
-      'Frente',
-      'Parar',
-    ];
+  Future<void> _toggleListening() async {
+    final vm = context.read<CarViewModel>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        alignment: WrapAlignment.center,
-        children: commands
-            .map((command) => _buildCommandChip(command))
-            .toList(),
-      ),
-    );
-  }
+    if (!isListening) {
+      final available = await _speech.initialize(
+        onStatus: (status) {
+          if (status == 'notListening') {
+            setState(() => isListening = false);
+          }
+        },
+        onError: (error) {
+          setState(() => isListening = false);
+          debugPrint('Erro STT: $error');
+        },
+      );
 
-  // Chip individual de comando
-  Widget _buildCommandChip(String label) {
-    return GestureDetector(
-      onTap: () => _executeCommand(label),
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1D2E),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Toggle de escuta de voz
-  void _toggleListening() {
-    setState(() {
-      isListening = !isListening;
-    });
-    
-    if (isListening) {
-      _startListening();
+      if (available) {
+        setState(() => isListening = true);
+        _speech.listen(
+          onResult: (result) {
+            setState(() {
+              _lastWords = result.recognizedWords;
+            });
+            if (result.finalResult) {
+              _processVoiceCommand(_lastWords, vm);
+            }
+          },
+          listenFor: const Duration(seconds: 8),
+          pauseFor: const Duration(seconds: 4),
+          localeId: 'pt_BR',
+        );
+      }
     } else {
-      _stopListening();
+      await _speech.stop();
+      setState(() => isListening = false);
     }
   }
 
-  // Iniciar reconhecimento de voz
-  void _startListening() {
-    print('Iniciando reconhecimento de voz...');
-    // Aqui você integraria o pacote speech_to_text
-    // Exemplo:
-    // await speech.listen(onResult: (result) {
-    //   _processVoiceCommand(result.recognizedWords);
-    // });
-  }
-
-  // Parar reconhecimento de voz
-  void _stopListening() {
-    print('Parando reconhecimento de voz...');
-    // await speech.stop();
-  }
-
-  // Executar comando selecionado
   void _executeCommand(String command) {
-    print('Executando comando: $command');
-    // Aqui você adicionaria a lógica para cada comando
-    // Exemplo: enviar comando via Bluetooth para o Arduino
+    final vm = context.read<CarViewModel>();
+    _processVoiceCommand(command, vm);
+    setState(() {
+      _lastWords = command;
+    });
+  }
+
+  void _processVoiceCommand(String text, CarViewModel vm) {
+    final normalized = text.toLowerCase();
+
+    if (normalized.contains('desligar luz')) {
+      vm.toggleLuz(false);
+    } else if (normalized.contains('desativar modo furtivo')) {
+      vm.toggleStealth(false);
+    } else if (normalized.contains('desativar turbo')) {
+      vm.toggleTurbo(false);
+    } else if (normalized.contains('ligar luz')) {
+      vm.toggleLuz(true);
+    } else if (normalized.contains('ativar modo furtivo')) {
+      vm.toggleStealth(true);
+    } else if (normalized.contains('modo turbo') ||
+        normalized.contains('ativar turbo')) {
+      vm.toggleTurbo(true);
+    } else if (normalized.contains('frente')) {
+      vm.updateJoystick(0, 1);
+    } else if (normalized.contains('parar')) {
+      vm.updateJoystick(0, 0);
+    }
   }
 }
