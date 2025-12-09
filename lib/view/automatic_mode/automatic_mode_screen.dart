@@ -11,12 +11,16 @@ class TelaDirecaoAutomatica extends StatefulWidget {
 }
 
 class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
-  double? _lastLat;
-  double? _lastLng;
   bool _sending = false;
 
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<CarViewModel>(context);
+    final isAutomatico = vm.command.modoAutomatico;
+
+    final double destX = vm.command.destinoX;
+    final double destY = vm.command.destinoY;
+
     return Scaffold(
       backgroundColor: const Color(0xFF101322),
       appBar: AppBar(
@@ -38,13 +42,11 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
       ),
       body: Column(
         children: [
-          // Mapa fictício + info + botão
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16).copyWith(top: 24),
               child: Column(
                 children: [
-                  // MAPA ILUSTRATIVO
                   Container(
                     height: 260,
                     decoration: BoxDecoration(
@@ -97,28 +99,25 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
 
                   const SizedBox(height: 24),
 
-                  // INFO DESTINO ATUAL
                   Row(
                     children: [
                       _buildInfoBox(
                         title: 'Destino atual',
-                        value: (_lastLat == null || _lastLng == null)
+                        value: (destX == 0 && destY == 0)
                             ? 'Nenhum destino definido'
-                            : '${_lastLat!.toStringAsFixed(5)}, ${_lastLng!.toStringAsFixed(5)}',
+                            : '${destX.toStringAsFixed(5)}, ${destY.toStringAsFixed(5)}',
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
 
-                  // BOTÃO
-                  _buildSendButton(context),
+                  _buildActionButton(context, isAutomatico, vm),
                 ],
               ),
             ),
           ),
 
-          // STATUS
           Padding(
             padding: const EdgeInsets.only(bottom: 24),
             child: Text(
@@ -170,15 +169,24 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     );
   }
 
-  Widget _buildSendButton(BuildContext context) {
+  Widget _buildActionButton(BuildContext context, bool isAutomatico, CarViewModel vm) {
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: _sending ? null : () => _sendDestination(context),
+        onPressed: _sending
+            ? null
+            : () {
+          if (isAutomatico) {
+            _stopDriving(vm);
+          } else {
+            _sendDestination(context, vm);
+          }
+        },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2547F4),
-          shadowColor: const Color(0xFF2547F4).withValues(alpha: 0.5),
+          backgroundColor: isAutomatico ? Colors.redAccent : const Color(0xFF2547F4),
+          shadowColor: (isAutomatico ? Colors.red : const Color(0xFF2547F4))
+              .withValues(alpha: 0.5),
           elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -193,9 +201,9 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
             strokeWidth: 2.5,
           ),
         )
-            : const Text(
-          'Iniciar Condução',
-          style: TextStyle(
+            : Text(
+          isAutomatico ? 'Parar Condução' : 'Iniciar Condução',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -206,11 +214,34 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     );
   }
 
-  Future<void> _sendDestination(BuildContext context) async {
+  Future<void> _stopDriving(CarViewModel vm) async {
+    setState(() => _sending = true);
+    try {
+      await vm.setManualMode();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Modo automático desativado.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao parar: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _sendDestination(BuildContext context, CarViewModel vm) async {
     setState(() => _sending = true);
 
     try {
-      // 1. Permissão
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -230,21 +261,16 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
         }
       }
 
-      // 2. Posição atual
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
       final double lat = pos.latitude;
       final double lng = pos.longitude;
 
-      // 3. Enviar para o Firebase via ViewModel
-      final carViewModel = context.read<CarViewModel>();
-      await carViewModel.setDestino(lat, lng);
+      // Envia para a ViewModel e Firebase
+      await vm.setDestino(lat, lng);
 
-      setState(() {
-        _lastLat = lat;
-        _lastLng = lng;
-      });
+      // Removido o setState local de _lastLat/_lastLng pois a UI agora lê direto da VM
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -273,7 +299,6 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
   }
 }
 
-// Desenho do mapa fictício
 class _FakeMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
