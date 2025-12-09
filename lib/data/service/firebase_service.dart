@@ -42,8 +42,8 @@ class FirebaseService {
 
 
     if (modoAutomatico != null) updateMap['modo_automatico'] = modoAutomatico;
-    if (destinoX != null) updateMap['destino_x'] = destinoX;
-    if (destinoY != null) updateMap['destino_y'] = destinoY;
+    if (destinoX != null) updateMap['destino/x'] = destinoX;
+    if (destinoY != null) updateMap['destino/y'] = destinoY;
 
     print('FirebaseService.atualizarJoystick: $updateMap');
     await _inputsRef.update(updateMap);
@@ -55,8 +55,8 @@ class FirebaseService {
   }) async {
     await _inputsRef.update({
       'modo_automatico': true,
-      'destino_x': destinoX,
-      'destino_y': destinoY,
+      'destino/x': destinoX,
+      'destino/y': destinoY,
     });
   }
 
@@ -64,8 +64,8 @@ class FirebaseService {
     print('FirebaseService.setManualMode');
     await _inputsRef.update({
       'modo_automatico': false,
-      'destino_x': 0,
-      'destino_y': 0,
+      'destino/x': 0,
+      'destino/y': 0,
     });
   }
 

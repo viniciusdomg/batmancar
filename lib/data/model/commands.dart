@@ -35,8 +35,8 @@ class Commands {
       'ignicao': ignicao,
       'cabine': cabine,
       'modo_automatico': modoAutomatico,
-      'destino_x': destinoX,
-      'destino_y': destinoY,
+      'destino/x': destinoX,
+      'destino/y': destinoY,
       'distancia': distancia,
     };
   }
@@ -45,6 +45,10 @@ class Commands {
 
     final inputs = map['inputs'] != null
         ? Map<dynamic, dynamic>.from(map['inputs'] as Map)
+        : {};
+
+    final destino = inputs['destino'] != null
+        ? Map<dynamic, dynamic>.from(inputs['destino'] as Map)
         : {};
 
     return Commands(
@@ -57,13 +61,13 @@ class Commands {
       cabine: inputs['cabine'] ?? false,
       modoAutomatico: inputs['modo_automatico'] ?? false,
 
-      destinoX: (inputs['destino_x'] is int)
-          ? (inputs['destino_x'] as int).toDouble()
-          : (inputs['destino_x'] ?? 0.0),
+      destinoX: (destino['x'] is int)
+          ? (destino['x'] as int).toDouble()
+          : (destino['x']?.toDouble() ?? 0.0),
 
-      destinoY: (inputs['destino_y'] is int)
-          ? (inputs['destino_y'] as int).toDouble()
-          : (inputs['destino_y'] ?? 0.0),
+      destinoY: (destino['y'] is int)
+          ? (destino['y'] as int).toDouble()
+          : (destino['y']?.toDouble() ?? 0.0),
 
       distancia: (map['distancia'] is int)
           ? (map['distancia'] as int).toDouble()
