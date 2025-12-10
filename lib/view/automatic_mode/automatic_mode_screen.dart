@@ -105,7 +105,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
                         title: 'Destino atual',
                         value: (destX == 0 && destY == 0)
                             ? 'Nenhum destino definido'
-                            : '${destX.toStringAsFixed(5)}, ${destY.toStringAsFixed(5)}',
+                            : '${destX.toStringAsFixed(7)}, ${destY.toStringAsFixed(7)}',
                       ),
                     ],
                   ),
@@ -117,7 +117,6 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(bottom: 24),
             child: Text(
@@ -169,7 +168,8 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, bool isAutomatico, CarViewModel vm) {
+  Widget _buildActionButton(
+      BuildContext context, bool isAutomatico, CarViewModel vm) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -184,8 +184,10 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: isAutomatico ? Colors.redAccent : const Color(0xFF2547F4),
-          shadowColor: (isAutomatico ? Colors.red : const Color(0xFF2547F4))
+          backgroundColor:
+          isAutomatico ? Colors.redAccent : const Color(0xFF2547F4),
+          shadowColor:
+          (isAutomatico ? Colors.red : const Color(0xFF2547F4))
               .withValues(alpha: 0.5),
           elevation: 8,
           shape: RoundedRectangleBorder(
@@ -238,7 +240,8 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     }
   }
 
-  Future<void> _sendDestination(BuildContext context, CarViewModel vm) async {
+  Future<void> _sendDestination(
+      BuildContext context, CarViewModel vm) async {
     setState(() => _sending = true);
 
     try {
@@ -261,22 +264,20 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
         }
       }
 
+      // mais precisão solicitada
       final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.best,
       );
       final double lat = pos.latitude;
       final double lng = pos.longitude;
 
-      // Envia para a ViewModel e Firebase
       await vm.setDestino(lat, lng);
-
-      // Removido o setState local de _lastLat/_lastLng pois a UI agora lê direto da VM
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Destino enviado: (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})',
+              'Destino enviado: (${lat.toStringAsFixed(7)}, ${lng.toStringAsFixed(7)})',
             ),
             backgroundColor: const Color(0xFF2547F4),
           ),
