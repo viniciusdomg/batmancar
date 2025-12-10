@@ -1,7 +1,9 @@
 import 'package:batmancar/viewmodel/car_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 
 class TelaDirecaoAutomatica extends StatefulWidget {
   const TelaDirecaoAutomatica({super.key});
@@ -12,6 +14,16 @@ class TelaDirecaoAutomatica extends StatefulWidget {
 
 class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
   bool _sending = false;
+  GoogleMapController? _mapController;
+
+  // centro fixo e zoom fixo
+  static const LatLng _fixedCenter =
+  LatLng(-5.885384393012014, -35.36383168236036);
+  static const double _fixedZoom = 19.0;
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +59,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
               padding: const EdgeInsets.all(16).copyWith(top: 24),
               child: Column(
                 children: [
+                  // MAPA DO GOOGLE
                   Container(
                     height: 260,
                     decoration: BoxDecoration(
@@ -58,41 +71,80 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: CustomPaint(
-                        painter: _FakeMapPainter(),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 16,
-                              top: 16,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'Mapa ilustrativo',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                      child: Stack(
+                        children: [
+                          GoogleMap(
+                            mapType: MapType.satellite,
+                            initialCameraPosition: const CameraPosition(
+                              target: _fixedCenter,
+                              zoom: _fixedZoom,
+                            ),
+                            onMapCreated: _onMapCreated,
+
+                            zoomControlsEnabled: false,
+                            zoomGesturesEnabled: false,
+                            scrollGesturesEnabled: false,
+                            rotateGesturesEnabled: false,
+                            tiltGesturesEnabled: false,
+
+                            // só reconhece tap simples
+                            gestureRecognizers: {
+                              Factory<OneSequenceGestureRecognizer>(
+                                    () => EagerGestureRecognizer(), // aceita toques básicos
+                              ),
+                            },
+
+                            onTap: (LatLng pos) async {
+                              final vm = context.read<CarViewModel>();
+                              await vm.setDestino(pos.latitude, pos.longitude);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Destino selecionado: (${pos.latitude.toStringAsFixed(7)}, ${pos.longitude.toStringAsFixed(7)})',
                                   ),
+                                  backgroundColor: const Color(0xFF2547F4),
+                                ),
+                              );
+                            },
+
+                            markers: {
+                              if (destX != 0 && destY != 0)
+                                Marker(
+                                  markerId: const MarkerId('destino'),
+                                  position: LatLng(destX, destY),
+                                  consumeTapEvents: true,
+                                  onTap: () {
+                                  },
+                                ),
+                            },
+                          ),
+                          Positioned(
+                            left: 16,
+                            top: 16,
+                            child: Container(
+                              padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black
+                                    .withValues(alpha: 0.5),
+                                borderRadius:
+                                BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Toque no mapa para definir o destino',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            const Center(
-                              child: Icon(
-                                Icons.location_on,
-                                color: Color(0xFF2547F4),
-                                size: 36,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -135,7 +187,8 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
   Widget _buildInfoBox({required String title, required String value}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding:
+        const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: const Color(0xFF1A1D2D),
           borderRadius: BorderRadius.circular(12),
@@ -180,7 +233,7 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
           if (isAutomatico) {
             _stopDriving(vm);
           } else {
-            _sendDestination(context, vm);
+            _startDriving(context, vm);
           }
         },
         style: ElevatedButton.styleFrom(
@@ -199,12 +252,15 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
           width: 22,
           height: 22,
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            valueColor:
+            AlwaysStoppedAnimation<Color>(Colors.white),
             strokeWidth: 2.5,
           ),
         )
             : Text(
-          isAutomatico ? 'Parar Condução' : 'Iniciar Condução',
+          isAutomatico
+              ? 'Parar Condução'
+              : 'Iniciar Condução',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -240,129 +296,21 @@ class _TelaDirecaoAutomaticaState extends State<TelaDirecaoAutomatica> {
     }
   }
 
-  Future<void> _sendDestination(
+  Future<void> _startDriving(
       BuildContext context, CarViewModel vm) async {
-    setState(() => _sending = true);
-
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Permita acesso à localização para usar a direção automática',
-                ),
-              ),
-            );
-          }
-          return;
-        }
-      }
-
-      // mais precisão solicitada
-      final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+    // aqui só iniciamos se já houver um destino definido
+    if (vm.command.destinoX == 0 && vm.command.destinoY == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Selecione um destino no mapa antes de iniciar.'),
+        ),
       );
-      final double lat = pos.latitude;
-      final double lng = pos.longitude;
-
-      await vm.setDestino(lat, lng);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Destino enviado: (${lat.toStringAsFixed(7)}, ${lng.toStringAsFixed(7)})',
-            ),
-            backgroundColor: const Color(0xFF2547F4),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao obter/enviar localização: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _sending = false);
-      }
+      return;
     }
+
+    // se quiser fazer algo extra ao iniciar, pode colocar aqui.
+    // o fato de o modo automático estar true já está sendo
+    // controlado dentro de setDestino() no CarViewModel.
   }
-}
-
-class _FakeMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.07)
-      ..strokeWidth = 1;
-
-    const cell = 32.0;
-    final rows = (size.height / cell).floor();
-    final cols = (size.width / cell).floor();
-
-    for (int i = 0; i <= rows; i++) {
-      canvas.drawLine(
-        Offset(0, i * cell),
-        Offset(size.width, i * cell),
-        gridPaint,
-      );
-    }
-    for (int j = 0; j <= cols; j++) {
-      canvas.drawLine(
-        Offset(j * cell, 0),
-        Offset(j * cell, size.height),
-        gridPaint,
-      );
-    }
-
-    final routePaint = Paint()
-      ..color = const Color(0xFF2547F4)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    final path = Path()
-      ..moveTo(size.width * 0.15, size.height * 0.8)
-      ..quadraticBezierTo(
-        size.width * 0.30,
-        size.height * 0.5,
-        size.width * 0.5,
-        size.height * 0.6,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.75,
-        size.height * 0.7,
-        size.width * 0.85,
-        size.height * 0.3,
-      );
-
-    canvas.drawPath(path, routePaint);
-
-    final startPaint = Paint()..color = Colors.greenAccent;
-    canvas.drawCircle(
-      Offset(size.width * 0.15, size.height * 0.8),
-      5,
-      startPaint,
-    );
-
-    final endPaint = Paint()..color = Colors.redAccent;
-    canvas.drawCircle(
-      Offset(size.width * 0.85, size.height * 0.3),
-      6,
-      endPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
