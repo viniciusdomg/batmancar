@@ -14,21 +14,26 @@ class CarViewModel extends ChangeNotifier {
     turbo: false,
     stealth: false,
     ignicao: false,
-    cabine:false,
+    cabine: false,
     modoAutomatico: false,
     destinoX: 0,
     destinoY: 0,
     distancia: 0,
+    teste1: 0,
+    teste2: false,
   );
 
   CarViewModel() {
     _iniciarListenerDistancia();
+    _iniciarListenerTeste();
   }
 
   Commands get command => _command;
 
   double get distancia => _command.distancia;
   bool get ignicao => _command.ignicao;
+  int get teste1 => _command.teste1;
+  bool get teste2 => _command.teste2;
 
   // Joystick
   void updateJoystick(int x, int y) {
@@ -54,6 +59,13 @@ class CarViewModel extends ChangeNotifier {
   Future<void> toggleIgnicao(bool value) async {
     _command = _command.copyWith(ignicao: value);
     await _service.atualizarIgnicao(value);
+
+    // Se a ignição estiver sendo LIGADA, chama a função de teste
+    if (value) {
+      // Você pode alterar os valores de teste aqui como precisar
+      await atualizarTeste(1, true);
+    }
+
     notifyListeners();
   }
 
@@ -104,15 +116,34 @@ class CarViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> atualizarTeste(int teste1, bool teste2) async {
+    await _service.atualizarTeste(teste1, teste2);
+  }
+
   // Listener da distância no Firebase
   void _iniciarListenerDistancia() {
     FirebaseDatabase.instance.ref().child('distancia').onValue.listen((event) {
       final valor = event.snapshot.value;
       final doubleDistancia =
-      (valor is num) ? valor.toDouble() : double.tryParse(valor?.toString() ?? '0') ?? 0.0;
+          (valor is num) ? valor.toDouble() : double.tryParse(valor?.toString() ?? '0') ?? 0.0;
 
       _command = _command.copyWith(distancia: doubleDistancia);
       notifyListeners();
+    });
+  }
+
+  // Listener para os valores de teste no Firebase
+  void _iniciarListenerTeste() {
+    FirebaseDatabase.instance.ref().child('teste').onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data != null && data is Map) {
+        final testeData = Map<String, dynamic>.from(data as Map);
+        _command = _command.copyWith(
+          teste1: testeData['teste1'] as int? ?? _command.teste1,
+          teste2: testeData['teste2'] as bool? ?? _command.teste2,
+        );
+        notifyListeners();
+      }
     });
   }
 }

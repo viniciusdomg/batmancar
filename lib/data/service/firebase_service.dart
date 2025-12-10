@@ -96,4 +96,11 @@ class FirebaseService {
   Future<void> atualizarCabine(bool ativado) async {
     await _inputsRef.update({'cabine': ativado});
   }
+
+  Future<void> atualizarTeste(int teste1, bool teste2) async {
+    await _inputsRef.update({
+      'teste1': teste1,
+      'teste2': teste2,
+    });
+  }
 }

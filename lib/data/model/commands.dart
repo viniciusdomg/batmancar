@@ -10,6 +10,8 @@ class Commands {
   final double destinoX;
   final double destinoY;
   final double distancia;
+  final int teste1;
+  final bool teste2;
 
   Commands({
     required this.joystickX,
@@ -23,6 +25,8 @@ class Commands {
     required this.destinoX,
     required this.destinoY,
     required this.distancia,
+    required this.teste1,
+    required this.teste2,
   });
 
   Map<String, dynamic> toJson() {
@@ -38,17 +42,22 @@ class Commands {
       'destino/x': destinoX,
       'destino/y': destinoY,
       'distancia': distancia,
+      'teste1': teste1,
+      'teste2': teste2,
     };
   }
 
   factory Commands.fromMap(Map<String, dynamic> map) {
-
     final inputs = map['inputs'] != null
         ? Map<dynamic, dynamic>.from(map['inputs'] as Map)
         : {};
 
     final destino = inputs['destino'] != null
         ? Map<dynamic, dynamic>.from(inputs['destino'] as Map)
+        : {};
+
+    final teste = map['teste'] != null
+        ? Map<dynamic, dynamic>.from(map['teste'] as Map)
         : {};
 
     return Commands(
@@ -60,22 +69,20 @@ class Commands {
       ignicao: inputs['ignicao'] ?? false,
       cabine: inputs['cabine'] ?? false,
       modoAutomatico: inputs['modo_automatico'] ?? false,
-
       destinoX: (destino['x'] is int)
           ? (destino['x'] as int).toDouble()
           : (destino['x']?.toDouble() ?? 0.0),
-
       destinoY: (destino['y'] is int)
           ? (destino['y'] as int).toDouble()
           : (destino['y']?.toDouble() ?? 0.0),
-
       distancia: (map['distancia'] is int)
           ? (map['distancia'] as int).toDouble()
           : (map['distancia'] ?? 0.0),
+      teste1: teste['teste1'] ?? 0,
+      teste2: teste['teste2'] ?? false,
     );
   }
 
-  // Permite atualizar só um campo mantendo os outros
   Commands copyWith({
     int? joystickX,
     int? joystickY,
@@ -88,6 +95,8 @@ class Commands {
     double? destinoX,
     double? destinoY,
     double? distancia,
+    int? teste1,
+    bool? teste2,
   }) {
     return Commands(
       joystickX: joystickX ?? this.joystickX,
@@ -101,11 +110,8 @@ class Commands {
       destinoX: destinoX ?? this.destinoX,
       destinoY: destinoY ?? this.destinoY,
       distancia: distancia ?? this.distancia,
+      teste1: teste1 ?? this.teste1,
+      teste2: teste2 ?? this.teste2,
     );
   }
-
 }
-
-
-
-
